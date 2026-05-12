@@ -1,0 +1,60 @@
+erDiagram
+    UserManagement ||--|| Users : has
+    Users }|--|| Role : has
+    Users }|--|| Department : has
+
+    LeaveRequest }|--|| Users : has
+    LeaveRequest }|--|| LeaveStatus : has
+    LeaveRequest }|--|| LeaveType : has
+
+    Users {
+        int user_id
+        string first_name
+        string last_name
+        string email
+        string password
+        int role_id
+        int department_id
+        int leave_balance
+    }
+
+    Role {
+        int role_id
+        string name
+    }
+
+    UserManagement{
+        int id
+        int user_id
+        int manager_id
+        date start_date
+        date end_date
+    }
+
+    LeaveRequest {
+        int id
+        int user_id
+        int type_id
+        int status_id
+        date raised_date
+        date start_date
+        date end_date
+        string comment
+        int reviewed_by
+        int reviewed_at
+    }
+
+    LeaveType {
+        int id
+        string type
+    }
+
+    LeaveStatus {
+        int id
+        string status
+    }
+
+    Department {
+        int id
+        string department
+    }
