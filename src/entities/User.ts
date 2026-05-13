@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert, } from "typeorm";
-import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, Matches, } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, Matches, isNotEmpty, } from "class-validator";
 import { PasswordHandler } from "../utilities/PasswordHandler";
 import { Role } from "./Role";
 import { Department } from "./Department";
@@ -14,12 +14,14 @@ export class User {
   @IsNotEmpty({ message: "First Name is required" })
   @MaxLength(30, { message: "First Name must be 30 characters or less" })
   @Matches(/\S/, { message: "First Name cannot be empty or whitespace" })
+  @Matches(/^[a-zA-Z\s]+$/, { message: 'First Name can only contain letters' })
   first_name!: string;
 
   @Column({ type: "varchar", length: 30 })
   @IsNotEmpty({ message: "Last Name is required" })
   @MaxLength(30, { message: "Last Name must be 30 characters or less" })
   @Matches(/\S/, { message: "Last Name cannot be empty or whitespace" })
+  @Matches(/^[a-zA-Z\s]+$/, { message: 'Last Name can only contain letters' })
   last_name!: string;
 
   @Column({ unique: true })
@@ -29,7 +31,8 @@ export class User {
 
   @Column()
   @IsString()
-  // @Exclude()
+  @IsNotEmpty()
+  @Exclude()
   @MinLength(10, { message: "Password must be at least 10 characters long" })
   @Matches(/\S/, { message: "Password cannot be empty or whitespace" })
   password!: string;
@@ -45,10 +48,12 @@ export class User {
 
   @ManyToOne(() => Role, { nullable: false, eager: true })
   @JoinColumn({ name: "role_id" })
+  @IsNotEmpty()
   role!: Role;
 
   @ManyToOne(() => Department, { nullable: false, eager: true })
   @JoinColumn({ name: "department_id" })
+  @IsNotEmpty()
   department!: Department;
 
   @BeforeInsert()

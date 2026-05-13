@@ -1,14 +1,17 @@
-import { ManagementRepository } from "../repositories/ManagementRepository";
-import { ResponseHandler } from "../utilities/ResponseHandler";
 import { UserManagement } from "../entities/UserManagement";
 import { isDateString, validate } from "class-validator";
 import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
-import { ManagementService } from "../services/ManagementService";
-import { UserService } from "../services/UserService";
-import { Validation } from "../utilities/Validation";
+import { IManagementService } from "../interfaces/services/IManagementService";
+import { IResponseHandler } from "../interfaces/IResponseHandler";
+import { IUserService } from "../interfaces/services/IUserService";
 
 export class ManagementController {
+  constructor(
+    private managementService: IManagementService,
+    private userService: IUserService,
+    private responseHandler: IResponseHandler,
+  ) { }
 
   private validateRequest = async (req: Request): Promise<UserManagement> => {
 
@@ -67,22 +70,16 @@ export class ManagementController {
 
       const management = await this.validateRequest(req);
 
-      const employee = await UserService.getById(management.user_id);
-      const manager = await UserService.getById(management.manager_id);
+      const employee = await this.userService.getById(management.user_id);
+      const manager = await this.userService.getById(management.manager_id);
 
-      const existing = await ManagementRepository.getOneByEmployeeAndManager(management.user_id, management.manager_id)
+      await this.managementService.getOneByEmployeeAndManager(management.user_id, management.manager_id)
 
-      if (existing) {
-        ResponseHandler.sendErrorResponse(res, StatusCodes.FORBIDDEN,
-          `Management record with user_id: ${management.user_id} and manager_id ${management.manager_id} already exists`);
-        return;
-      }
+      await this.managementService.add(management);
 
-      await ManagementService.add(management);
-
-      ResponseHandler.sendSuccessResponse(res, { message: "Created new management entry", data: management }, StatusCodes.CREATED,);
+      this.responseHandler.sendSuccessResponse(res, { message: "Created new management entry", data: management }, StatusCodes.CREATED,);
     } catch (error: any) {
-      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
+      this.responseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
 
   };

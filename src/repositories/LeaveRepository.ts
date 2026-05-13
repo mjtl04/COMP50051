@@ -1,33 +1,30 @@
 import { LeaveRequest } from "../entities/LeaveRequest";
 import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { BaseRepository } from "./BaseRepository";
+import { ILeaveRepository } from "../interfaces/repositories/ILeaveRepository";
 
-export class LeaveRepository extends BaseRepository(LeaveRequest) {
-
-    static getByUserAndId = async (user_id: number, leave_id: number): Promise<LeaveRequest | null> => {
+export class LeaveRepository extends BaseRepository(LeaveRequest) implements ILeaveRepository {
+    public async getByUserAndId(user_id: number, leave_id: number): Promise<LeaveRequest | null> {
         return await this.repository.findOne({
-            where: {
-                user_id: user_id,
-                id: leave_id
-            }
+            where: { user_id, id: leave_id }
         });
     }
 
-    static getAllByUserAndDates = async (user_id: number, start: Date, end: Date): Promise<LeaveRequest[] | null> => {
+    public async getAllByUserAndDates(user_id: number, start: Date, end: Date): Promise<LeaveRequest[] | null> {
         return await this.repository.find({
             where: {
-                user_id: user_id,
+                user_id,
                 start_date: MoreThanOrEqual(start),
                 end_date: LessThanOrEqual(end)
             }
         });
     }
 
-    static getAllByUserId = async (user_id: number): Promise<LeaveRequest[] | null> => {
-        return await this.repository.find({ where: { user_id: user_id } });
+    public async getAllByUserId(user_id: number): Promise<LeaveRequest[] | null> {
+        return await this.repository.find({ where: { user_id } });
     }
 
-    static getOverlap = async (leave_request: LeaveRequest): Promise<LeaveRequest | null> => {
+    public async getOverlap(leave_request: LeaveRequest): Promise<LeaveRequest | null> {
         return await this.repository.findOne({
             where: {
                 user_id: leave_request.user_id,
@@ -36,5 +33,4 @@ export class LeaveRepository extends BaseRepository(LeaveRequest) {
             }
         });
     }
-
 }

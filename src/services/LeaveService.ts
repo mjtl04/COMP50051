@@ -2,17 +2,23 @@ import { StatusCodes } from "http-status-codes";
 import { AuthedDTOToken } from "../entities/DTO/AuthedDTOToken";
 import { LeaveRequest } from "../entities/LeaveRequest";
 import { AppError } from "../utilities/APIExceptions";
-import { UserService } from "./UserService";
-import { ManagementService } from "./ManagementService";
-import { LeaveRepository } from "../repositories/LeaveRepository";
-import { StatusEnum } from "../utilities/enums/StatusEnum";
 import { DateValidation } from "../utilities/DateValidation";
 import { LeaveRequestDTO } from "../entities/DTO/LeaveRequestDTO";
 import { LeaveBalanceDTO } from "../entities/DTO/LeaveBalanceDTO";
 import { TypeEnum } from "../utilities/enums/TypeEnum";
 import { RoleEnum } from "../utilities/enums/RoleEnum";
+import { IUserService } from "../interfaces/services/IUserService";
+import { ILeaveRepository } from "../interfaces/repositories/ILeaveRepository";
+import { IManagementService } from "../interfaces/services/IManagementService";
+import { StatusEnum } from "../utilities/enums/StatusEnum";
 
 export class LeaveService {
+
+    constructor(
+        private userService: IUserService,
+        private managementService: IManagementService,
+        private repository: ILeaveRepository,
+    ) { }
 
     public static readonly ERROR_NOT_FOUND_ID = (id: number) => `Leave Request not found with id: ${id}`;
     public static readonly ERROR_RECORD_EXISTS = "Date range of request overlaps with existing leave request";
@@ -20,35 +26,35 @@ export class LeaveService {
     public static readonly ERROR_NO_REQUESTS = (user_id: number) => `Leave Request(s) not found for employee id: ${user_id}`;
     public static readonly ERROR_NO_MANAGED_REQUESTS = `No Leave Request(s) found`;
 
-    static getById = async (id: number): Promise<LeaveRequest> => {
-        const record = await LeaveRepository.getById(id);
+    public async getById(id: number): Promise<LeaveRequest> {
+        const record = await this.repository.getById(id);
         if (!record) {
-            throw new AppError(StatusCodes.NOT_FOUND, this.ERROR_NOT_FOUND_ID(id));
+            throw new AppError(StatusCodes.NOT_FOUND, LeaveService.ERROR_NOT_FOUND_ID(id));
         }
         return record;
     }
 
-    static getByUser = async (viewer: number, passed_employee: number): Promise<LeaveRequestDTO[] | null> => {
+    public async getByUser(viewer: number, passed_employee: number): Promise<LeaveRequestDTO[] | null> {
 
-        const employee = await UserService.getById(passed_employee);
+        const employee = await this.userService.getById(passed_employee);
 
         if (viewer != passed_employee) {
-            await ManagementService.isManagedEmployee(viewer, passed_employee)
+            await this.managementService.isManagedEmployee(viewer, passed_employee)
         }
 
-        const records = await LeaveRepository.getAllByUserId(passed_employee);
+        const records = await this.repository.getAllByUserId(passed_employee);
         if (!records || records.length === 0) {
             return null;
         }
         return records.map(LeaveRequestDTO.init)
     }
 
-    static getManaged = async (token: AuthedDTOToken): Promise<LeaveRequestDTO[]> => {
+    public async getManaged(token: AuthedDTOToken): Promise<LeaveRequestDTO[]> {
 
-        const managedEmployees = await ManagementService.getManagedEmployees(token.employee_id);
+        const managedEmployees = await this.managementService.getManagedEmployees(token.employee_id);
 
         if (!managedEmployees || managedEmployees.length === 0) {
-            throw new AppError(StatusCodes.NOT_FOUND, this.ERROR_NO_MANAGED_REQUESTS);
+            throw new AppError(StatusCodes.NOT_FOUND, LeaveService.ERROR_NO_MANAGED_REQUESTS);
         }
 
         const allRequests: LeaveRequestDTO[] = [];
@@ -65,18 +71,18 @@ export class LeaveService {
 
 
 
-    static getBalance = async (viewer: number, passed_employee: number): Promise<LeaveBalanceDTO> => {
-        const employee = await UserService.getById(passed_employee);
+    public async getBalance(viewer: number, passed_employee: number): Promise<LeaveBalanceDTO> {
+        const employee = await this.userService.getById(passed_employee);
 
         if (viewer != passed_employee) {
-            await ManagementService.isManagedEmployee(viewer, passed_employee)
+            await this.managementService.isManagedEmployee(viewer, passed_employee)
         }
 
         const { start, end } = DateValidation.getFinancialYearRange();
-        const records = await LeaveRepository.getAllByUserAndDates(passed_employee, start, end);
+        const records = await this.repository.getAllByUserAndDates(passed_employee, start, end);
 
         if (!records || records.length === 0) {
-            throw new AppError(StatusCodes.NOT_FOUND, this.ERROR_NO_REQUESTS(passed_employee));
+            throw new AppError(StatusCodes.NOT_FOUND, LeaveService.ERROR_NO_REQUESTS(passed_employee));
         }
 
         const used_leave = records
@@ -101,7 +107,7 @@ export class LeaveService {
         });
     }
 
-    static create = async (start_date: Date, end_date: Date, user_id: number): Promise<LeaveRequestDTO> => {
+    public async create(start_date: Date, end_date: Date, user_id: number): Promise<LeaveRequestDTO> {
 
         const leave_request = new LeaveRequest();
         leave_request.start_date = new Date(start_date);
@@ -125,29 +131,29 @@ export class LeaveService {
             throw new Error(`End date of ${leave_request.end_date} is before the start date of ${leave_request.start_date}`)
         }
 
-        await LeaveService.getOverlap(leave_request);
+        await this.getOverlap(leave_request);
 
-        let user = await UserService.getById(leave_request.user_id);
+        let user = await this.userService.getById(leave_request.user_id);
         let leave_range = DateValidation.dayDifference(leave_request.end_date, leave_request.start_date);
 
         if (leave_range > user.leave_balance) {
             throw new Error("Days requested exceed remaining balance")
         }
 
-        await LeaveRepository.create(leave_request);
+        await this.repository.create(leave_request);
 
         return LeaveRequestDTO.init(leave_request)
 
     }
 
-    static update = async (token: AuthedDTOToken, request_id: number, reason: string | null, status: number): Promise<LeaveRequestDTO> => {
+    public async update(token: AuthedDTOToken, request_id: number, reason: string | null, status: number): Promise<LeaveRequestDTO> {
 
-        const leave_request = await LeaveRepository.getById(request_id);
+        const leave_request = await this.repository.getById(request_id);
         if (!leave_request) {
-            throw new AppError(StatusCodes.NOT_FOUND, this.ERROR_NOT_FOUND_ID(request_id));
+            throw new AppError(StatusCodes.NOT_FOUND, LeaveService.ERROR_NOT_FOUND_ID(request_id));
         }
 
-        const employee = await UserService.getById(leave_request.user_id);
+        const employee = await this.userService.getById(leave_request.user_id);
 
         const isSelf = token.employee_id === employee.id;
         const isAdmin = token.role.id === RoleEnum.Admin;
@@ -159,7 +165,7 @@ export class LeaveService {
         }
         else if (!isAdmin) {
             if (token.employee_id !== employee.id) {
-                await ManagementService.isManagedEmployee(token.employee_id, employee.id);
+                await this.managementService.isManagedEmployee(token.employee_id, employee.id);
             }
         }
 
@@ -175,7 +181,7 @@ export class LeaveService {
             if (leave_request.status_id === StatusEnum.Approved) {
                 const days = DateValidation.dayDifference(leave_request.start_date, leave_request.end_date);
                 employee.leave_balance += days;
-                await UserService.update(employee);
+                await this.userService.update(employee);
             }
             if (reason) leave_request.comment = reason;
         }
@@ -191,27 +197,27 @@ export class LeaveService {
 
             const days = DateValidation.dayDifference(leave_request.start_date, leave_request.end_date);
             employee.leave_balance -= days;
-            await UserService.update(employee);
+            await this.userService.update(employee);
         }
 
         leave_request.status_id = status;
         leave_request.reviewed_by = token.employee_id;
         leave_request.reviewed_date = new Date();
 
-        await LeaveRepository.update(leave_request);
+        await this.repository.update(leave_request);
 
         return LeaveRequestDTO.init(leave_request);
     };
 
 
-    static getOverlap = async (leave: LeaveRequest) => {
-        const record = await LeaveRepository.getOverlap(leave);
+    public async getOverlap(leave: LeaveRequest) {
+        const record = await this.repository.getOverlap(leave);
         if (record) {
-            throw new AppError(StatusCodes.CONFLICT, this.ERROR_RECORD_EXISTS);
+            throw new AppError(StatusCodes.CONFLICT, LeaveService.ERROR_RECORD_EXISTS);
         }
     }
 
-    static getPending = async (token: AuthedDTOToken): Promise<LeaveRequestDTO[]> => {
+    public async getPending(token: AuthedDTOToken): Promise<LeaveRequestDTO[]> {
         let pending = await this.getManaged(token);
         pending = pending.filter(r => r.status == StatusEnum[StatusEnum.Pending])
         return pending;

@@ -1,9 +1,10 @@
 import { Response } from "express";
 import { Logger } from "./Logger";
 import { StatusCodes } from "http-status-codes";
+import { IResponseHandler } from "../interfaces/IResponseHandler";
 
-export class ResponseHandler {
-  public static sendErrorResponse(res: Response, statusCode: number, message: string = "Unexpected error"): Response {
+export class ResponseHandler implements IResponseHandler {
+  public sendErrorResponse(res: Response, statusCode: number, message: string = "Unexpected error"): Response {
     const timestamp = new Date().toISOString();
     Logger.error(`[Error]: ${message}`, `${timestamp}`);
 
@@ -17,7 +18,7 @@ export class ResponseHandler {
     return res.status(statusCode).send(errorResponse);
   }
 
-  public static sendSuccessResponse(res: Response, data: any, statusCode: number = StatusCodes.OK): Response {
+  public sendSuccessResponse(res: Response, data: any, statusCode: number = StatusCodes.OK): Response {
     return res.status(statusCode).send(data);
   }
 }
