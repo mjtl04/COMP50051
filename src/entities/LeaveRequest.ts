@@ -43,18 +43,22 @@ export class LeaveRequest {
   reviewed_date!: Date;
 
   @ManyToOne(() => User)
+  @IsNotEmpty()
   @JoinColumn({ name: "user_id" })
   user!: User;
 
   @ManyToOne(() => User)
+  @IsNotEmpty()
   @JoinColumn({ name: "reviewed_by" })
   reviewer!: User;
 
   @ManyToOne(() => LeaveType)
+  @IsNotEmpty()
   @JoinColumn({ name: "type_id" })
   leaveType!: LeaveType;
 
   @ManyToOne(() => LeaveStatus)
+  @IsNotEmpty()
   @JoinColumn({ name: "status_id" })
   leaveStatus!: LeaveStatus;
 
