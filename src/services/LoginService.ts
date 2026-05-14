@@ -2,20 +2,19 @@ import { AuthedDTOToken } from "../entities/DTO/AuthedDTOToken";
 import { Role } from "../entities/Role";
 import { IUserService } from "../interfaces/services/IUserService";
 import { ILoginService } from "../interfaces/services/ILoginService";
-import { IPasswordHandler } from "../interfaces/IPasswordHandler";
+import { PasswordHandler } from "../utilities/PasswordHandler";
 
 export class LoginService implements ILoginService {
 
     constructor(
         private userService: IUserService,
-        private passwordHandler: IPasswordHandler,
     ) { }
 
     public async login(email: string, password: string): Promise<AuthedDTOToken> {
 
         const user = await this.userService.login(email);
 
-        await this.passwordHandler.verifyPassword(password, user.password);
+        await PasswordHandler.verifyPassword(password, user.password);
 
         const token: AuthedDTOToken = {
             employee_id: user.id,

@@ -5,7 +5,7 @@ import { Role } from '../../src/entities/Role';
 import { Department } from '../../src/entities/Department';
 import { instanceToPlain } from 'class-transformer';
 
-describe('UserRepository tests (mocked instance)', () => {
+describe('UserRepository tests', () => {
     let user: User;
     let mockRepository: jest.Mocked<IUserRepository>;
 

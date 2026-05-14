@@ -1,24 +1,22 @@
-import { ResponseHandler } from "./utilities/ResponseHandler";
 import { IApiRouter } from "./interfaces/IApiRouter";
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import morgan, { StreamOptions } from "morgan";
 import { AppDataSource } from "./data_source";
 import { Logger } from "./utilities/Logger";
-import requestIP, { rateLimit } from 'express-rate-limit';
+import { IResponseHandler } from "./interfaces/IResponseHandler";
+import helmet from "helmet";
 
 export class Server {
 
   private readonly ERROR_SERVER = `Failed to start server - database initialisation failed`;
 
-  public readonly port: number = 8900;
+  public readonly port = process.env.PORT;
   private readonly source = AppDataSource;
   private readonly app: express.Application = express();
-  private readonly helmet = require('helmet');
 
-
-  constructor(private router: IApiRouter) {
-    this.app.use(this.helmet.hidePoweredBy());
+  constructor(private router: IApiRouter, private responseHandler: IResponseHandler) {
+    this.app.use(helmet.hidePoweredBy());
     this.initialiseMiddlewares();
     this.router.initialise(this.app);
     this.initialiseErrorHandling();
@@ -48,11 +46,7 @@ export class Server {
   private initialiseErrorHandling() {
     this.app.use((req: Request, res: Response) => {
       const requestedUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
-      ResponseHandler.sendErrorResponse(
-        res,
-        StatusCodes.NOT_FOUND,
-        "Route " + requestedUrl + " not found",
-      );
+      return this.responseHandler.sendErrorResponse(res, StatusCodes.NOT_FOUND, "Route " + requestedUrl + " not found");
     });
   }
 

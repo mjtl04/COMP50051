@@ -8,7 +8,7 @@ class TestEntity {
     name!: string;
 }
 
-describe("BaseRepository", () => {
+describe("BaseRepository tests", () => {
     let mockedRepository: jest.Mocked<Repository<TestEntity>>;
     let BaseRepoClass: any;
     let baseRepositoryInstance: any;

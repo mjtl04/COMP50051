@@ -1,81 +1,159 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
-import { UserRepository } from '../../src/repositories/UserRepository';
-import { User } from '../../src/entities/User';
-import { instanceToPlain } from 'class-transformer';
+import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import { UserController } from "../../src/controllers/UserController";
+import { StatusCodes } from "http-status-codes";
 
-jest.mock('../../src/repositories/UserRepository');
-
-describe('UserRepository tests (jest.mock)', () => {
-    let user: User;
-    let mockRepoClass: jest.MockedClass<typeof UserRepository>;
-    let mockRepoInstance: any;
+describe("UserController tests", () => {
+    let controller: UserController;
+    let managementService: any;
+    let userService: any;
+    let responseHandler: any;
+    let validation: any;
+    let req: any;
+    let res: any;
 
     beforeEach(() => {
-        mockRepoClass = jest.mocked(UserRepository);
-
-        mockRepoInstance = {
-            create: jest.fn(),
-            delete: jest.fn(),
-            getByEmail: jest.fn(),
-            getById: jest.fn(),
+        managementService = {
+            getManagedEmployees: jest.fn(),
         };
 
-        mockRepoClass.mockImplementation(() => mockRepoInstance);
+        userService = {
+            getById: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+        };
 
-        user = new User();
-        user.id = 1;
-        user.first_name = "test";
-        user.last_name = "user";
-        user.password = 'a'.repeat(10);
-        user.email = 'testuser@email.com';
+        responseHandler = {
+            sendSuccessResponse: jest.fn(),
+            sendErrorResponse: jest.fn(),
+        };
 
-        jest.clearAllMocks();
+        validation = {
+            paramId: jest.fn(),
+        };
+
+        controller = new UserController(
+            managementService,
+            userService,
+            responseHandler,
+            validation
+        );
+
+        req = {
+            params: {},
+            body: {},
+            authedUser: { employee_id: 1 },
+        };
+
+        res = {};
     });
 
-    it('Get User by email', async () => {
-        mockRepoInstance.getByEmail.mockResolvedValue(user);
+    it("should return managed employees", async () => {
+        const testUser = [{ id: 1, name: "John" }];
+        managementService.getManagedEmployees.mockResolvedValue(testUser);
 
-        const repo = new UserRepository();
-        const result = await repo.getByEmail("testuser@email.com");
+        await controller.getAll(req, res);
 
-        expect(result?.email).toBe("testuser@email.com");
+        expect(managementService.getManagedEmployees).toHaveBeenCalledWith(1);
+        expect(responseHandler.sendSuccessResponse).toHaveBeenCalledWith(
+            res,
+            testUser,
+            StatusCodes.OK
+        );
     });
 
-    it('returns null when user is not found', async () => {
-        mockRepoInstance.getByEmail.mockResolvedValue(null);
+    it("should return user by id", async () => {
+        req.params.id = "5";
+        validation.paramId.mockReturnValue(5);
 
-        const repo = new UserRepository();
-        const result = await repo.getByEmail("nonexistingg@email.com");
+        const testUser = { id: 5, name: "Alice" };
+        userService.getById.mockResolvedValue(testUser);
 
-        expect(result).toBeNull();
+        await controller.getById(req, res);
+
+        expect(validation.paramId).toHaveBeenCalledWith("5");
+        expect(userService.getById).toHaveBeenCalledWith(5);
+        expect(responseHandler.sendSuccessResponse).toHaveBeenCalledWith(
+            res,
+            testUser,
+            StatusCodes.OK
+        );
     });
 
-    it('throws when repository throws', async () => {
-        mockRepoInstance.getByEmail.mockRejectedValue(new Error("database error"));
+    it("should create a user", async () => {
+        req.body = {
+            email: "test@test.com",
+            password: "123456",
+            first_name: "John",
+            last_name: "Doe",
+            role_id: 2,
+            department_id: 3,
+        };
 
-        const repo = new UserRepository();
+        const createdUser = { id: 10, ...req.body };
+        userService.create.mockResolvedValue(createdUser);
 
-        await expect(repo.getByEmail("test@test.com")).rejects.toThrow("database error");
+        await controller.create(req, res);
+
+        expect(userService.create).toHaveBeenCalled();
+        expect(responseHandler.sendSuccessResponse).toHaveBeenCalledWith(
+            res,
+            createdUser,
+            StatusCodes.CREATED
+        );
     });
 
-    it('returns a User instance', async () => {
-        mockRepoInstance.getByEmail.mockResolvedValue(user);
+    it("should return error if required fields missing", async () => {
+        req.body = { email: "missing fields" };
 
-        const repo = new UserRepository();
-        const result = await repo.getByEmail("test@test.com");
+        await controller.create(req, res);
 
-        expect(result).toBeInstanceOf(User);
+        expect(responseHandler.sendErrorResponse).toHaveBeenCalled();
     });
 
-    it('returned user excludes password property when serialized', async () => {
-        mockRepoInstance.getByEmail.mockResolvedValue(user);
+    it("should update a user", async () => {
+        req.params.id = "7";
+        validation.paramId.mockReturnValue(7);
 
-        const repo = new UserRepository();
-        const found = await repo.getByEmail("test@test.com");
+        req.body = {
+            role_id: 2,
+            department_id: 3,
+            leave_balance: 10,
+        };
 
-        const plain = instanceToPlain(found as any) as Record<string, any>;
+        const updatedUser = { id: 7, ...req.body };
+        userService.update.mockResolvedValue(updatedUser);
 
-        expect(plain?.password).toBe(undefined);
+        await controller.update(req, res);
+
+        expect(userService.update).toHaveBeenCalledWith({
+            id: 7,
+            role_id: 2,
+            department_id: 3,
+            leave_balance: 10,
+        });
+
+        expect(responseHandler.sendSuccessResponse).toHaveBeenCalledWith(
+            res,
+            updatedUser,
+            StatusCodes.OK
+        );
     });
 
+    it("should delete a user", async () => {
+        req.params.id = "9";
+        validation.paramId.mockReturnValue(9);
+
+        userService.getById.mockResolvedValue({ id: 9 });
+        userService.delete.mockResolvedValue(undefined);
+
+        await controller.delete(req, res);
+
+        expect(userService.delete).toHaveBeenCalledWith(9);
+        expect(responseHandler.sendSuccessResponse).toHaveBeenCalledWith(
+            res,
+            { message: "User with Id: 9 deleted" },
+            StatusCodes.OK
+        );
+    });
 });
