@@ -5,12 +5,12 @@ import { Request, Response } from "express";
 import { IManagementService } from "../interfaces/services/IManagementService";
 import { IUserService } from "../interfaces/services/IUserService";
 import { ResponseHandler } from "../utilities/ResponseHandler";
+import { Logger } from "../utilities/Logger";
 
 export class ManagementController {
   constructor(private managementService: IManagementService, private userService: IUserService) { }
 
   private validateRequest = async (req: Request): Promise<UserManagement> => {
-
     if (req.body == null) { throw new Error("Request body is required") }
     if (!('start_date' in req.body)) { throw new Error("start_date field is required") }
     if (!('end_date' in req.body)) { throw new Error("end_date field is required") }
@@ -75,6 +75,7 @@ export class ManagementController {
 
       ResponseHandler.sendSuccessResponse(res, { message: "Created new management entry", data: management }, StatusCodes.CREATED,);
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
 

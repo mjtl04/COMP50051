@@ -7,6 +7,7 @@ import { IManagementService } from "../interfaces/services/IManagementService";
 import { IUserService } from "../interfaces/services/IUserService";
 import { ResponseHandler } from "../utilities/ResponseHandler";
 import { Validation } from "../utilities/Validation";
+import { Logger } from "../utilities/Logger";
 
 export class UserController {
 
@@ -17,6 +18,7 @@ export class UserController {
       const users = await this.managementService.getManagedEmployees(req.authedUser.employee_id)
       ResponseHandler.sendSuccessResponse(res, instanceToPlain(users), StatusCodes.OK);
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   }
@@ -45,6 +47,7 @@ export class UserController {
       const dto = await this.userService.create(req.authedUser, user);
       ResponseHandler.sendSuccessResponse(res, instanceToPlain(dto), StatusCodes.CREATED);
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   };
@@ -63,6 +66,7 @@ export class UserController {
       const user = await this.userService.update(dto);
       ResponseHandler.sendSuccessResponse(res, instanceToPlain(user), StatusCodes.OK);
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   };
@@ -74,6 +78,7 @@ export class UserController {
       await this.userService.delete(id);
       ResponseHandler.sendSuccessResponse(res, { message: `User with Id: ${id} deleted` }, StatusCodes.OK);
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   };

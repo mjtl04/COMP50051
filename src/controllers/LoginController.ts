@@ -4,6 +4,7 @@ import { ILoginService } from "../interfaces/services/ILoginService";
 import jwt from 'jsonwebtoken';
 import { Validation } from "../utilities/Validation";
 import { ResponseHandler } from "../utilities/ResponseHandler";
+import { Logger } from "../utilities/Logger";
 
 export class LoginController {
 
@@ -23,6 +24,7 @@ export class LoginController {
       res.status(StatusCodes.ACCEPTED).send(jwt.sign({ ...token }, process.env.JWT_SECRET_KEY as string, { expiresIn: '3h' }));
 
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   };

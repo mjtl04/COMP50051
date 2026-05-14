@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { ILeaveService } from "../interfaces/services/ILeaveService";
 import { ResponseHandler } from "../utilities/ResponseHandler";
 import { Validation } from "../utilities/Validation";
+import { Logger } from "../utilities/Logger";
 
 export class LeaveController {
 
@@ -19,6 +20,7 @@ export class LeaveController {
       ResponseHandler.sendSuccessResponse(res, balance, StatusCodes.OK);
 
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   }
@@ -32,6 +34,7 @@ export class LeaveController {
       ResponseHandler.sendSuccessResponse(res, leave_requests, StatusCodes.OK);
 
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   }
@@ -50,6 +53,7 @@ export class LeaveController {
       ResponseHandler.sendSuccessResponse(res, { message: "Leave request submitted for review", data: leave_dto }, StatusCodes.CREATED);
 
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   };
@@ -72,6 +76,7 @@ export class LeaveController {
       );
 
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   };
@@ -108,6 +113,7 @@ export class LeaveController {
       ResponseHandler.sendSuccessResponse(res, { message: `Leave Request with id: ${id} has been Rejected` }, StatusCodes.OK);
 
     } catch (error: any) {
+      Logger.error(error.message);
       ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
   };
