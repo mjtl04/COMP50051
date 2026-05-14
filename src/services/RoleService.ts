@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
-import { AppError } from "../utilities/APIExceptions";
 import { Role } from "../entities/Role";
 import { IRoleRepository } from "../interfaces/repositories/IRoleRepository";
 import { IRoleService } from "../interfaces/services/IRoleService";
+import { AppError } from "../utilities/AppError";
 
 export class RoleService implements IRoleService {
 
@@ -13,7 +13,7 @@ export class RoleService implements IRoleService {
     public async getById(id: number): Promise<Role> {
         const role = await this.repository.getById(id);
         if (!role) {
-            throw new AppError(StatusCodes.NOT_FOUND, RoleService.ERROR_NOT_FOUND_ID(id));
+            throw new AppError(RoleService.ERROR_NOT_FOUND_ID(id), StatusCodes.NOT_FOUND);
         }
         return role;
     }

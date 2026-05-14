@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
 import { Department } from "../entities/Department";
-import { AppError } from "../utilities/APIExceptions";
 import { IDepartmentService } from "../interfaces/services/IDepartmentService";
 import { IDepartmentRepository } from "../interfaces/repositories/IDepartmentRepository";
+import { AppError } from "../utilities/AppError";
 
 export class DepartmentService implements IDepartmentService {
 
@@ -13,7 +13,7 @@ export class DepartmentService implements IDepartmentService {
     public async getById(id: number): Promise<Department> {
         const department = await this.repository.getById(id);
         if (!department) {
-            throw new AppError(StatusCodes.NOT_FOUND, DepartmentService.ERROR_NOT_FOUND_ID(id));
+            throw new AppError(DepartmentService.ERROR_NOT_FOUND_ID(id), StatusCodes.NOT_FOUND);
         }
         return department;
     }

@@ -1,45 +1,44 @@
 import { isEmail, validate } from "class-validator";
 import { StatusCodes } from "http-status-codes";
-import { AppError } from "./APIExceptions";
-import { IValidation } from "../interfaces/IValidation";
+import { AppError } from "./AppError";
 
 export class Validation {
 
     public static async classValidate<T extends object>(item: T): Promise<void> {
         const errors = await validate(item);
         if (errors.length > 0) {
-            throw new AppError(StatusCodes.BAD_REQUEST, errors.map(err => Object.values(err.constraints || {})).join(", "));
+            throw new AppError(errors.map(err => Object.values(err.constraints || {})).join(", "), StatusCodes.BAD_REQUEST);
         }
     };
 
     public static paramId(id: string): number {
         const value = parseInt(id);
         if (isNaN(value)) {
-            throw new AppError(StatusCodes.BAD_REQUEST, `Request parameter must be a valid number`);
+            throw new AppError(`Request parameter must be a valid number`, StatusCodes.BAD_REQUEST,);
         }
         return value;
     }
 
     public static email(email: string): string {
         if (!email || email.trim().length === 0) {
-            throw new AppError(StatusCodes.BAD_REQUEST, "Email is required");
+            throw new AppError("Email is required", StatusCodes.BAD_REQUEST);
         }
         if (!isEmail(email)) {
-            throw new AppError(StatusCodes.BAD_REQUEST, "Enter valid email format");
+            throw new AppError("Enter valid email format", StatusCodes.BAD_REQUEST);
         }
         return email.trim().toLowerCase();
     }
 
     public static password(password: string): string {
         if (!password || password.trim().length === 0) {
-            throw new AppError(StatusCodes.BAD_REQUEST, "Password is required");
+            throw new AppError("Password is required", StatusCodes.BAD_REQUEST,);
         }
         return password;
     }
 
     public static reason(reason: string): string {
         if (!reason || reason.trim().length === 0) {
-            throw new AppError(StatusCodes.BAD_REQUEST, "Reason is required");
+            throw new AppError("Reason is required", StatusCodes.BAD_REQUEST);
         }
         return reason;
     }

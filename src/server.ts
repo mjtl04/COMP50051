@@ -1,11 +1,11 @@
 import { IApiRouter } from "./interfaces/IApiRouter";
-import express, { Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
+import express, { NextFunction, Request, Response } from "express";
 import morgan, { StreamOptions } from "morgan";
 import { AppDataSource } from "./data_source";
 import { Logger } from "./utilities/Logger";
 import helmet from "helmet";
-import { ResponseHandler } from "./utilities/ResponseHandler";
+import { ErrorHandler } from "./utilities/ErrorHandler";
+import { AppError } from "./utilities/AppError";
 
 export class Server {
 
@@ -44,9 +44,8 @@ export class Server {
   }
 
   private initialiseErrorHandling() {
-    this.app.use((req: Request, res: Response) => {
-      const requestedUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
-      return ResponseHandler.sendErrorResponse(res, StatusCodes.NOT_FOUND, "Route " + requestedUrl + " not found");
+    this.app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
+      ErrorHandler.handle(err, res);
     });
   }
 

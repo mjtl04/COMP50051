@@ -1,6 +1,5 @@
 import { StatusCodes } from "http-status-codes";
 import { User } from "../entities/User";
-import { AppError } from "../utilities/APIExceptions";
 import { AuthedDTOToken } from "../entities/DTO/AuthedDTOToken";
 import { UserDTO } from "../entities/DTO/UserDTO";
 import { plainToInstance } from "class-transformer";
@@ -11,6 +10,7 @@ import { IDepartmentService } from "../interfaces/services/IDepartmentService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IRoleService } from "../interfaces/services/IRoleService";
 import { Validation } from "../utilities/Validation";
+import { AppError } from "../utilities/AppError";
 
 export class UserService implements IUserService {
 
@@ -25,7 +25,7 @@ export class UserService implements IUserService {
     public async login(email: string): Promise<User> {
         const record = await this.repository.getByEmail(email);
         if (!record) {
-            throw new AppError(StatusCodes.NO_CONTENT, UserService.ERROR_EMAIL_NOT_FOUND(email));
+            throw new AppError(UserService.ERROR_EMAIL_NOT_FOUND(email), StatusCodes.NO_CONTENT);
         }
         return record;
     }
@@ -33,7 +33,7 @@ export class UserService implements IUserService {
     public async getByEmail(email: string): Promise<UserDTO> {
         const record = await this.repository.getByEmail(email);
         if (!record) {
-            throw new AppError(StatusCodes.NO_CONTENT, UserService.ERROR_EMAIL_NOT_FOUND(email));
+            throw new AppError(UserService.ERROR_EMAIL_NOT_FOUND(email), StatusCodes.NO_CONTENT);
         }
         return UserDTO.init(record);
     }
@@ -41,7 +41,7 @@ export class UserService implements IUserService {
     public async getAll(): Promise<UserDTO[]> {
         const records = await this.repository.getAll();
         if (!records) {
-            throw new AppError(StatusCodes.NO_CONTENT, UserService.ERROR_NO_USERS);
+            throw new AppError(UserService.ERROR_NO_USERS, StatusCodes.NO_CONTENT);
         }
 
         return records.map(a => UserDTO.init(a))
@@ -50,7 +50,7 @@ export class UserService implements IUserService {
     public async getById(id: number): Promise<UserDTO> {
         const record = await this.repository.getById(id);
         if (!record) {
-            throw new AppError(StatusCodes.NOT_FOUND, UserService.ERROR_ID_NOT_FOUND(id));
+            throw new AppError(UserService.ERROR_ID_NOT_FOUND(id), StatusCodes.NO_CONTENT);
         }
         return UserDTO.init(record);
     }
@@ -59,7 +59,7 @@ export class UserService implements IUserService {
 
         let user = await this.repository.getById(dto.id);
         if (!user) {
-            throw new AppError(StatusCodes.NOT_FOUND, UserService.ERROR_ID_NOT_FOUND(dto.id));
+            throw new AppError(UserService.ERROR_ID_NOT_FOUND(dto.id), StatusCodes.NO_CONTENT);
         }
 
         await this.departmentService.getById(dto.department_id);
@@ -69,7 +69,7 @@ export class UserService implements IUserService {
         user.role = { id: dto.role_id } as Role;
 
         if (dto.leave_balance < 0) {
-            throw new AppError(StatusCodes.NOT_FOUND, UserService.ERROR_MIN_LEAVE_BALANCE);
+            throw new AppError(UserService.ERROR_MIN_LEAVE_BALANCE, StatusCodes.NO_CONTENT);
         }
         user.leave_balance = dto.leave_balance;
 
@@ -101,7 +101,7 @@ export class UserService implements IUserService {
     private async emailExists(email: string): Promise<void> {
         const record = await this.repository.getByEmail(email);
         if (record) {
-            throw new AppError(StatusCodes.CONFLICT, UserService.ERROR_EMAIL_EXISTS(email));
+            throw new AppError(UserService.ERROR_EMAIL_EXISTS(email), StatusCodes.CONFLICT,);
         }
     };
 

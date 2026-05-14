@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import { RoleEnum } from "./enums/RoleEnum";
 import { AuthedDTOToken } from "../entities/DTO/AuthedDTOToken";
-import { AppError } from "./APIExceptions";
 import { ResponseHandler } from "./ResponseHandler";
+import { AppError } from "./AppError";
 
 export class ApiAuthorisation {
 
@@ -27,11 +27,11 @@ export class ApiAuthorisation {
     static isAdmin(token: AuthedDTOToken | undefined) {
         if (token) {
             if (token.role.id != RoleEnum.Admin) {
-                throw new AppError(StatusCodes.BAD_REQUEST, this.ERROR_NOT_ADMIN);
+                throw new AppError(this.ERROR_NOT_ADMIN, StatusCodes.BAD_REQUEST);
             }
         }
         else {
-            throw new AppError(StatusCodes.BAD_REQUEST, this.ERROR_NOT_AUTHENTICATED);
+            throw new AppError(this.ERROR_NOT_AUTHENTICATED, StatusCodes.BAD_REQUEST,);
         }
     }
 }

@@ -1,7 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import { AuthedDTOToken } from "../entities/DTO/AuthedDTOToken";
 import { LeaveRequest } from "../entities/LeaveRequest";
-import { AppError } from "../utilities/APIExceptions";
 import { DateValidation } from "../utilities/DateValidation";
 import { LeaveRequestDTO } from "../entities/DTO/LeaveRequestDTO";
 import { LeaveBalanceDTO } from "../entities/DTO/LeaveBalanceDTO";
@@ -11,6 +10,7 @@ import { IUserService } from "../interfaces/services/IUserService";
 import { ILeaveRepository } from "../interfaces/repositories/ILeaveRepository";
 import { IManagementService } from "../interfaces/services/IManagementService";
 import { StatusEnum } from "../utilities/enums/StatusEnum";
+import { AppError } from "../utilities/AppError";
 
 export class LeaveService {
 
@@ -29,7 +29,7 @@ export class LeaveService {
     public async getById(id: number): Promise<LeaveRequest> {
         const record = await this.repository.getById(id);
         if (!record) {
-            throw new AppError(StatusCodes.NOT_FOUND, LeaveService.ERROR_NOT_FOUND_ID(id));
+            throw new AppError(LeaveService.ERROR_NOT_FOUND_ID(id), StatusCodes.NOT_FOUND);
         }
         return record;
     }
@@ -54,7 +54,7 @@ export class LeaveService {
         const managedEmployees = await this.managementService.getManagedEmployees(token.employee_id);
 
         if (!managedEmployees || managedEmployees.length === 0) {
-            throw new AppError(StatusCodes.NOT_FOUND, LeaveService.ERROR_NO_MANAGED_REQUESTS);
+            throw new AppError(LeaveService.ERROR_NO_MANAGED_REQUESTS, StatusCodes.NOT_FOUND);
         }
 
         const allRequests: LeaveRequestDTO[] = [];
@@ -69,8 +69,6 @@ export class LeaveService {
         return allRequests;
     }
 
-
-
     public async getBalance(viewer: number, passed_employee: number): Promise<LeaveBalanceDTO> {
         const employee = await this.userService.getById(passed_employee);
 
@@ -82,7 +80,7 @@ export class LeaveService {
         const records = await this.repository.getAllByUserAndDates(passed_employee, start, end);
 
         if (!records || records.length === 0) {
-            throw new AppError(StatusCodes.NOT_FOUND, LeaveService.ERROR_NO_REQUESTS(passed_employee));
+            throw new AppError(LeaveService.ERROR_NO_REQUESTS(passed_employee), StatusCodes.NOT_FOUND);
         }
 
         const used_leave = records
@@ -124,7 +122,7 @@ export class LeaveService {
         }
 
         if (leave_request.start_date < new Date() || leave_request.end_date < new Date()) {
-            throw new Error(`Cannot raise leave request in the past`)
+            throw new Error(AppError.exceptions.ERROR_PAST_DATE)
         }
 
         if (leave_request.start_date > leave_request.end_date) {
@@ -150,7 +148,7 @@ export class LeaveService {
 
         const leave_request = await this.repository.getById(request_id);
         if (!leave_request) {
-            throw new AppError(StatusCodes.NOT_FOUND, LeaveService.ERROR_NOT_FOUND_ID(request_id));
+            throw new AppError(LeaveService.ERROR_NOT_FOUND_ID(request_id), StatusCodes.NOT_FOUND);
         }
 
         const employee = await this.userService.getById(leave_request.user_id);
@@ -160,7 +158,7 @@ export class LeaveService {
 
         if (isSelf) {
             if (status !== StatusEnum.Cancelled) {
-                throw new AppError(StatusCodes.FORBIDDEN, "You cannot approve or reject your own leave request");
+                throw new AppError("You cannot approve or reject your own leave request", StatusCodes.FORBIDDEN);
             }
         }
         else if (!isAdmin) {
@@ -170,11 +168,11 @@ export class LeaveService {
         }
 
         if (DateValidation.isInPast(leave_request.start_date) || DateValidation.isInPast(leave_request.end_date)) {
-            throw new AppError(StatusCodes.CONFLICT, "Cannot modify a leave request in the past");
+            throw new AppError("Cannot modify a leave request in the past", StatusCodes.CONFLICT);
         }
 
         if (leave_request.status_id === status) {
-            throw new AppError(StatusCodes.CONFLICT, `Request is already ${StatusEnum[status]}`);
+            throw new AppError(`Request is already ${StatusEnum[status]}`, StatusCodes.CONFLICT,);
         }
 
         if (status === StatusEnum.Cancelled) {
@@ -192,7 +190,7 @@ export class LeaveService {
 
         if (status === StatusEnum.Approved) {
             if (leave_request.status_id !== StatusEnum.Pending) {
-                throw new AppError(StatusCodes.CONFLICT, "Only pending requests may be approved");
+                throw new AppError("Only pending requests may be approved", StatusCodes.CONFLICT);
             }
 
             const days = DateValidation.dayDifference(leave_request.start_date, leave_request.end_date);
@@ -213,7 +211,7 @@ export class LeaveService {
     public async getOverlap(leave: LeaveRequest) {
         const record = await this.repository.getOverlap(leave);
         if (record) {
-            throw new AppError(StatusCodes.CONFLICT, LeaveService.ERROR_RECORD_EXISTS);
+            throw new AppError(LeaveService.ERROR_RECORD_EXISTS, StatusCodes.CONFLICT);
         }
     }
 

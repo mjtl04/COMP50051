@@ -1,6 +1,6 @@
-import { AppError } from "./APIExceptions";
 import { StatusCodes } from "http-status-codes";
 import argon2 from "argon2";
+import { AppError } from "./AppError";
 
 export class PasswordHandler {
     public static readonly ERROR_PASSWORD_INCORRECT = "Password incorrect";
@@ -14,12 +14,12 @@ export class PasswordHandler {
 
     public static verifyPassword = async (password: string, hash: string): Promise<boolean> => {
         if (!password || password.trim().length === 0) {
-            throw new AppError(StatusCodes.FORBIDDEN, PasswordHandler.ERROR_NO_PASSWORD_PROVIDED);
+            throw new AppError(PasswordHandler.ERROR_NO_PASSWORD_PROVIDED, StatusCodes.FORBIDDEN,);
         }
 
         const isValid = await argon2.verify(hash, password + PasswordHandler.PEPPER);
         if (!isValid) {
-            throw new AppError(StatusCodes.FORBIDDEN, PasswordHandler.ERROR_PASSWORD_INCORRECT);
+            throw new AppError(PasswordHandler.ERROR_PASSWORD_INCORRECT, StatusCodes.FORBIDDEN);
         }
 
         return true;

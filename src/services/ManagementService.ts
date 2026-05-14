@@ -1,11 +1,11 @@
 import { StatusCodes } from "http-status-codes";
-import { AppError } from "../utilities/APIExceptions";
 import { RoleEnum } from "../utilities/enums/RoleEnum";
 import { UserManagement } from "../entities/UserManagement";
 import { UserDTO } from "../entities/DTO/UserDTO";
 import { IManagementService } from "../interfaces/services/IManagementService";
 import { IManagementRepository } from "../interfaces/repositories/IManagementRepository";
 import { IUserService } from "../interfaces/services/IUserService";
+import { AppError } from "../utilities/AppError";
 
 export class ManagementService implements IManagementService {
 
@@ -55,7 +55,7 @@ export class ManagementService implements IManagementService {
                 return true;
             }
             else {
-                throw new AppError(StatusCodes.FORBIDDEN, ManagementService.ERROR_PERMISSION);
+                throw new AppError(ManagementService.ERROR_PERMISSION, StatusCodes.FORBIDDEN);
             }
 
         }
@@ -65,7 +65,7 @@ export class ManagementService implements IManagementService {
         const existing = await this.repository.getOneByEmployeeAndManager(user_id, employee_id)
 
         if (existing) {
-            throw new AppError(StatusCodes.CONFLICT, ManagementService.ERROR_EXISTING(user_id, employee_id));
+            throw new AppError(ManagementService.ERROR_EXISTING(user_id, employee_id), StatusCodes.CONFLICT);
         }
     }
 }
