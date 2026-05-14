@@ -1,14 +1,10 @@
+import { ApiAuthentication } from "../utilities/ApiAuthenticate";
 import { IApiRouter } from "../interfaces/IApiRouter";
 import { RouteContainer } from "./RouteContainer";
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { IAuthentication } from "../interfaces/IAuthentication";
 
 export class ApiRouter implements IApiRouter {
-
-  constructor(
-    private authentication: IAuthentication
-  ) { }
 
   static readonly ERROR_TOO_MANY_REQUESTS = "Too many api requests raised";
 
@@ -36,8 +32,8 @@ export class ApiRouter implements IApiRouter {
 
   initialise(app: express.Application): void {
     app.use("/api/login", this.loginRateLimiter, RouteContainer.LoginRouter.getRouter());
-    app.use("/api/users", this.jwtRateLimiter, this.authentication.authenticateToken, RouteContainer.UserRouter.getRouter());
-    app.use("/api/leave-requests", this.jwtRateLimiter, this.authentication.authenticateToken, RouteContainer.LeaveRouter.getRouter());
-    app.use("/api/management", this.jwtRateLimiter, this.authentication.authenticateToken, RouteContainer.ManagementRouter.getRouter());
+    app.use("/api/users", this.jwtRateLimiter, ApiAuthentication.authenticateToken, RouteContainer.UserRouter.getRouter());
+    app.use("/api/leave-requests", this.jwtRateLimiter, ApiAuthentication.authenticateToken, RouteContainer.LeaveRouter.getRouter());
+    app.use("/api/management", this.jwtRateLimiter, ApiAuthentication.authenticateToken, RouteContainer.ManagementRouter.getRouter());
   }
 }

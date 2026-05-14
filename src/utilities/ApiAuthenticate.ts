@@ -10,7 +10,7 @@ export class ApiAuthentication {
   private static ERROR_TOKEN_IS_INVALID = "Not authorised - Token is invalid";
   private static ERROR_TOKEN_NOT_FOUND = "Not authorised - Token not found";
 
-  public authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+  public static authenticateToken = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
     if (authHeader) {

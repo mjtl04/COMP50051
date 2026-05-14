@@ -25,7 +25,6 @@ import { IManagementRepository } from "../interfaces/repositories/IManagementRep
 import { ManagementRepository } from "../repositories/ManagementRepository";
 import { UserRepository } from "../repositories/UserRepository";
 import { ApiAuthorisation } from "../utilities/ApiAuthorisation";
-import { IAuthorisation } from "../interfaces/IAuthorisation";
 
 const userRepository: IUserRepository = new UserRepository;
 const roleRepository: IRoleRepository = new RoleRepository;
@@ -33,12 +32,9 @@ const departmentRepository: IDepartmentRepository = new DepartmentRepository;
 const leaveRepository: ILeaveRepository = new LeaveRepository;
 const managementRepository: IManagementRepository = new ManagementRepository;
 
-const authorisation: IAuthorisation = new ApiAuthorisation();
-
 const roleService: IRoleService = new RoleService(roleRepository);
 const departmentService: IDepartmentService = new DepartmentService(departmentRepository);
 const userService = new UserService(userRepository, roleService, departmentService);
-
 const managementService = new ManagementService(managementRepository, userService);
 const loginService = new LoginService(userService);
 const leaveService = new LeaveService(userService, managementService, leaveRepository);
@@ -50,7 +46,7 @@ const managementController = new ManagementController(managementService, userSer
 
 export const RouteContainer = {
     LoginRouter: new LoginRouter(loginController),
-    UserRouter: new UserRouter(userController, authorisation),
+    UserRouter: new UserRouter(userController),
     LeaveRouter: new LeaveRouter(leaveController),
-    ManagementRouter: new ManagementRouter(managementController, authorisation),
+    ManagementRouter: new ManagementRouter(managementController),
 };
