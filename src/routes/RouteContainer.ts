@@ -10,9 +10,6 @@ import { LoginService } from "../services/LoginService";
 import { UserService } from "../services/UserService";
 import { ManagementService } from "../services/ManagementService";
 import { LeaveService } from "../services/LeaveService";
-import { Validation } from "../utilities/Validation";
-import { ResponseHandler } from "../utilities/ResponseHandler";
-import { PasswordHandler } from "../utilities/PasswordHandler";
 import { RoleService } from "../services/RoleService";
 import { DepartmentService } from "../services/DepartmentService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
@@ -36,22 +33,20 @@ const departmentRepository: IDepartmentRepository = new DepartmentRepository;
 const leaveRepository: ILeaveRepository = new LeaveRepository;
 const managementRepository: IManagementRepository = new ManagementRepository;
 
-const responseHandler = new ResponseHandler();
-const validation = new Validation();
-const authorisation: IAuthorisation = new ApiAuthorisation(responseHandler);
+const authorisation: IAuthorisation = new ApiAuthorisation();
 
 const roleService: IRoleService = new RoleService(roleRepository);
 const departmentService: IDepartmentService = new DepartmentService(departmentRepository);
-const userService = new UserService(validation, userRepository, roleService, departmentService);
+const userService = new UserService(userRepository, roleService, departmentService);
 
 const managementService = new ManagementService(managementRepository, userService);
 const loginService = new LoginService(userService);
 const leaveService = new LeaveService(userService, managementService, leaveRepository);
 
-const loginController = new LoginController(loginService, validation, responseHandler);
-const userController = new UserController(managementService, userService, responseHandler, validation);
-const leaveController = new LeaveController(responseHandler, validation, leaveService);
-const managementController = new ManagementController(managementService, userService, responseHandler);
+const loginController = new LoginController(loginService);
+const userController = new UserController(managementService, userService);
+const leaveController = new LeaveController(leaveService);
+const managementController = new ManagementController(managementService, userService);
 
 export const RouteContainer = {
     LoginRouter: new LoginRouter(loginController),

@@ -35,8 +35,6 @@ describe("UserController tests", () => {
         controller = new UserController(
             managementService,
             userService,
-            responseHandler,
-            validation
         );
 
         req = {

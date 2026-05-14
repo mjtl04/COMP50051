@@ -4,8 +4,8 @@ import { StatusCodes } from "http-status-codes";
 import morgan, { StreamOptions } from "morgan";
 import { AppDataSource } from "./data_source";
 import { Logger } from "./utilities/Logger";
-import { IResponseHandler } from "./interfaces/IResponseHandler";
 import helmet from "helmet";
+import { ResponseHandler } from "./utilities/ResponseHandler";
 
 export class Server {
 
@@ -15,7 +15,7 @@ export class Server {
   private readonly source = AppDataSource;
   private readonly app: express.Application = express();
 
-  constructor(private router: IApiRouter, private responseHandler: IResponseHandler) {
+  constructor(private router: IApiRouter) {
     this.app.use(helmet.hidePoweredBy());
     this.initialiseMiddlewares();
     this.router.initialise(this.app);
@@ -46,7 +46,7 @@ export class Server {
   private initialiseErrorHandling() {
     this.app.use((req: Request, res: Response) => {
       const requestedUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
-      return this.responseHandler.sendErrorResponse(res, StatusCodes.NOT_FOUND, "Route " + requestedUrl + " not found");
+      return ResponseHandler.sendErrorResponse(res, StatusCodes.NOT_FOUND, "Route " + requestedUrl + " not found");
     });
   }
 

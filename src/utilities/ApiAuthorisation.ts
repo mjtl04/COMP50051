@@ -3,14 +3,10 @@ import { StatusCodes } from "http-status-codes";
 import { RoleEnum } from "./enums/RoleEnum";
 import { AuthedDTOToken } from "../entities/DTO/AuthedDTOToken";
 import { AppError } from "./APIExceptions";
-import { IResponseHandler } from "../interfaces/IResponseHandler";
 import { IAuthorisation } from "../interfaces/IAuthorisation";
+import { ResponseHandler } from "./ResponseHandler";
 
 export class ApiAuthorisation implements IAuthorisation {
-
-    constructor(
-        private responseHandler: IResponseHandler
-    ) { }
 
     static ERROR_NOT_AUTHENTICATED = `Not Authenticated - please log in`
     static ERROR_NOT_AUTHOURISED = `Not Authorised - not enough permission`
@@ -19,11 +15,11 @@ export class ApiAuthorisation implements IAuthorisation {
     public authoriseRole = (...allowedRoles: RoleEnum[]) => {
         return (req: Request, res: Response, next: NextFunction) => {
             if (!req.authedUser) {
-                this.responseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, ApiAuthorisation.ERROR_NOT_AUTHENTICATED);
+                ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, ApiAuthorisation.ERROR_NOT_AUTHENTICATED);
             }
 
             if (!allowedRoles.includes(req.authedUser.role.id)) {
-                this.responseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, ApiAuthorisation.ERROR_NOT_AUTHOURISED);
+                ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, ApiAuthorisation.ERROR_NOT_AUTHOURISED);
             }
             next();
         }

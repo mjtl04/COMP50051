@@ -7,19 +7,14 @@ import { plainToInstance } from "class-transformer";
 import { Department } from "../entities/Department";
 import { Role } from "../entities/Role";
 import { IUserService } from "../interfaces/services/IUserService";
-import { IValidation } from "../interfaces/IValidation";
 import { IDepartmentService } from "../interfaces/services/IDepartmentService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IRoleService } from "../interfaces/services/IRoleService";
+import { Validation } from "../utilities/Validation";
 
 export class UserService implements IUserService {
 
-    constructor(
-        private validation: IValidation,
-        private repository: IUserRepository,
-        private roleService: IRoleService,
-        private departmentService: IDepartmentService,
-    ) { }
+    constructor(private repository: IUserRepository, private roleService: IRoleService, private departmentService: IDepartmentService) { }
 
     static ERROR_ID_NOT_FOUND = (id: number) => `User with Id: ${id} not found`
     static ERROR_EMAIL_NOT_FOUND = (email: string) => `User with email: ${email} not found`
@@ -40,7 +35,7 @@ export class UserService implements IUserService {
         if (!record) {
             throw new AppError(StatusCodes.NO_CONTENT, UserService.ERROR_EMAIL_NOT_FOUND(email));
         }
-        return UserDTO.init(record, this.validation);
+        return UserDTO.init(record);
     }
 
     public async getAll(): Promise<UserDTO[]> {
@@ -49,7 +44,7 @@ export class UserService implements IUserService {
             throw new AppError(StatusCodes.NO_CONTENT, UserService.ERROR_NO_USERS);
         }
 
-        return records.map(a => UserDTO.init(a, this.validation))
+        return records.map(a => UserDTO.init(a))
     }
 
     public async getById(id: number): Promise<UserDTO> {
@@ -57,7 +52,7 @@ export class UserService implements IUserService {
         if (!record) {
             throw new AppError(StatusCodes.NOT_FOUND, UserService.ERROR_ID_NOT_FOUND(id));
         }
-        return UserDTO.init(record, this.validation);
+        return UserDTO.init(record);
     }
 
     public async update(dto: UserDTO): Promise<UserDTO> {
@@ -79,24 +74,24 @@ export class UserService implements IUserService {
         user.leave_balance = dto.leave_balance;
 
         const updated = await this.repository.update(user);
-        return UserDTO.init(updated!, this.validation);
+        return UserDTO.init(updated!);
     }
 
     public async create(token: AuthedDTOToken, body: User): Promise<UserDTO> {
         const user = plainToInstance(User, body);
 
-        user.first_name = this.validation.formatName(user.first_name);
-        user.last_name = this.validation.formatName(user.last_name);
-        user.email = this.validation.email(user.email);
+        user.first_name = Validation.formatName(user.first_name);
+        user.last_name = Validation.formatName(user.last_name);
+        user.email = Validation.email(user.email);
 
-        await this.validation.classValidate(user);
+        await Validation.classValidate(user);
         await this.emailExists(user.email);
         await this.departmentService.getById(user.department_id);
         await this.roleService.getById(user.role_id);
 
         await this.repository.create(user);
 
-        return UserDTO.init(user, this.validation);
+        return UserDTO.init(user);
     }
 
     public async delete(id: number) {

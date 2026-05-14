@@ -6,9 +6,7 @@ import { IRoleService } from "../interfaces/services/IRoleService";
 
 export class RoleService implements IRoleService {
 
-    constructor(
-        private repository: IRoleRepository,
-    ) { }
+    constructor(private repository: IRoleRepository) { }
 
     public static readonly ERROR_NOT_FOUND_ID = (id: number) => `Role not found with id: ${id}`;
 

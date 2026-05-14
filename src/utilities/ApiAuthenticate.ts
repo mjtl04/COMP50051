@@ -3,14 +3,9 @@ import { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import { Logger } from "./Logger";
 import jwt from "jsonwebtoken";
-import { IResponseHandler } from "../interfaces/IResponseHandler";
-import { IAuthentication } from "../interfaces/IAuthentication";
+import { ResponseHandler } from "./ResponseHandler";
 
-export class ApiAuthentication implements IAuthentication {
-
-  constructor(
-    private responseHandler: IResponseHandler
-  ) { }
+export class ApiAuthentication {
 
   private static ERROR_TOKEN_IS_INVALID = "Not authorised - Token is invalid";
   private static ERROR_TOKEN_NOT_FOUND = "Not authorised - Token not found";
@@ -23,13 +18,13 @@ export class ApiAuthentication implements IAuthentication {
 
       if (!process.env.JWT_SECRET_KEY) {
         Logger.error(ApiAuthentication.ERROR_TOKEN_NOT_FOUND);
-        return this.responseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, ApiAuthentication.ERROR_TOKEN_IS_INVALID);
+        return ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, ApiAuthentication.ERROR_TOKEN_IS_INVALID);
       }
 
       jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
         if (err) {
           Logger.error(ApiAuthentication.ERROR_TOKEN_IS_INVALID);
-          return this.responseHandler.sendErrorResponse(res, StatusCodes.UNAUTHORIZED, ApiAuthentication.ERROR_TOKEN_IS_INVALID);
+          return ResponseHandler.sendErrorResponse(res, StatusCodes.UNAUTHORIZED, ApiAuthentication.ERROR_TOKEN_IS_INVALID);
         }
 
         req.authedUser = user as AuthedDTOToken;
@@ -38,7 +33,7 @@ export class ApiAuthentication implements IAuthentication {
 
     } else {
       Logger.error(ApiAuthentication.ERROR_TOKEN_NOT_FOUND);
-      return this.responseHandler.sendErrorResponse(res, StatusCodes.UNAUTHORIZED, ApiAuthentication.ERROR_TOKEN_NOT_FOUND,
+      return ResponseHandler.sendErrorResponse(res, StatusCodes.UNAUTHORIZED, ApiAuthentication.ERROR_TOKEN_NOT_FOUND,
       );
     }
   };

@@ -3,15 +3,11 @@ import { isDateString, validate } from "class-validator";
 import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
 import { IManagementService } from "../interfaces/services/IManagementService";
-import { IResponseHandler } from "../interfaces/IResponseHandler";
 import { IUserService } from "../interfaces/services/IUserService";
+import { ResponseHandler } from "../utilities/ResponseHandler";
 
 export class ManagementController {
-  constructor(
-    private managementService: IManagementService,
-    private userService: IUserService,
-    private responseHandler: IResponseHandler,
-  ) { }
+  constructor(private managementService: IManagementService, private userService: IUserService) { }
 
   private validateRequest = async (req: Request): Promise<UserManagement> => {
 
@@ -77,9 +73,9 @@ export class ManagementController {
 
       await this.managementService.add(management);
 
-      this.responseHandler.sendSuccessResponse(res, { message: "Created new management entry", data: management }, StatusCodes.CREATED,);
+      ResponseHandler.sendSuccessResponse(res, { message: "Created new management entry", data: management }, StatusCodes.CREATED,);
     } catch (error: any) {
-      this.responseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
+      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
     }
 
   };
