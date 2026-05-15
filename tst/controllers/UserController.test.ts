@@ -103,9 +103,7 @@ describe("UserController tests", () => {
     it("should return error if required fields missing", async () => {
         req.body = { email: "missing fields" };
 
-        await controller.create(req, res);
-
-        expect(ResponseHandler.sendErrorResponse).toHaveBeenCalled();
+        await expect(controller.create(req, res)).rejects.toThrow("password field is required");
     });
 
     it("should update a user", async () => {
@@ -149,7 +147,7 @@ describe("UserController tests", () => {
         expect(userService.delete).toHaveBeenCalledWith(9);
         expect(ResponseHandler.sendSuccessResponse).toHaveBeenCalledWith(
             res,
-            { message: "User with Id: 9 deleted" },
+            expect.objectContaining({ message: "User with id: 9 has been Deleted" }),
             StatusCodes.OK
         );
     });

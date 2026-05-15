@@ -1,12 +1,12 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { LeaveService } from "../../src/services/LeaveService";
-import { AppError } from "../../src/utilities/APIExceptions";
 import { StatusEnum } from "../../src/utilities/enums/StatusEnum";
 import { LeaveRequest } from "../../src/entities/LeaveRequest";
 import { LeaveRequestDTO } from "../../src/entities/DTO/LeaveRequestDTO";
 import { LeaveBalanceDTO } from "../../src/entities/DTO/LeaveBalanceDTO";
 import { DateValidation } from "../../src/utilities/DateValidation";
 import { AuthedDTOToken } from "../../src/entities/DTO/AuthedDTOToken";
+import { AppError } from "../../src/utilities/AppError";
 
 describe("LeaveService tests", () => {
     let service: LeaveService;

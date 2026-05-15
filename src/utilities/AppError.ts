@@ -10,7 +10,7 @@ export class AppError extends Error {
     }
 
     static exceptions = {
-        ERROR_BODY_REQUIRED: "request body is required",
+        ERROR_BODY_REQUIRED: "Request body is required",
         ERROR_START_DATE_REQUIRED: "start_date field is required",
         ERROR_END_DATE_REQUIRED: "end_date field is required",
         ERROR_REASON_REQUIRED: "reason field is required",

@@ -45,39 +45,17 @@ describe("LoginController tests", () => {
 
     it("returns error when body is missing", async () => {
         req.body = null;
-
-        await controller.login(req, res);
-
-        expect(Logger.error).toHaveBeenCalled();
-        expect(ResponseHandler.sendErrorResponse).toHaveBeenCalledWith(
-            res,
-            StatusCodes.BAD_REQUEST,
-            "Request body is required"
-        );
+        await expect(controller.login(req, res)).rejects.toThrow("Request body is required");
     });
 
     it("returns error when email is missing", async () => {
         req.body = { password: "123456" };
-
-        await controller.login(req, res);
-
-        expect(ResponseHandler.sendErrorResponse).toHaveBeenCalledWith(
-            res,
-            StatusCodes.BAD_REQUEST,
-            "email field is required"
-        );
+        await expect(controller.login(req, res)).rejects.toThrow("email field is required");
     });
 
     it("returns error when password is missing", async () => {
         req.body = { email: "test@test.com" };
-
-        await controller.login(req, res);
-
-        expect(ResponseHandler.sendErrorResponse).toHaveBeenCalledWith(
-            res,
-            StatusCodes.BAD_REQUEST,
-            "password field is required"
-        );
+        await expect(controller.login(req, res)).rejects.toThrow("password field is required");
     });
 
     it("logs in successfully and returns JWT", async () => {
@@ -103,6 +81,7 @@ describe("LoginController tests", () => {
         expect(res.send).toHaveBeenCalledWith("signed.jwt.token");
     });
 
+
     it("handles loginService errors", async () => {
         req.body = {
             email: "test@test.com",
@@ -111,13 +90,6 @@ describe("LoginController tests", () => {
 
         loginService.login.mockRejectedValue(new Error("Invalid credentials"));
 
-        await controller.login(req, res);
-
-        expect(Logger.error).toHaveBeenCalledWith("Invalid credentials");
-        expect(ResponseHandler.sendErrorResponse).toHaveBeenCalledWith(
-            res,
-            StatusCodes.BAD_REQUEST,
-            "Invalid credentials"
-        );
+        await expect(controller.login(req, res)).rejects.toThrow("Invalid credentials");
     });
 });

@@ -1,6 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import { AppError } from "../../src/utilities/AppError";
 import { UserService } from "../../src/services/UserService";
-import { AppError } from "../../src/utilities/APIExceptions";
 import { User } from "../../src/entities/User";
 import { UserDTO } from "../../src/entities/DTO/UserDTO";
 import { Validation } from "../../src/utilities/Validation";
