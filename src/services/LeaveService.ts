@@ -117,12 +117,16 @@ export class LeaveService {
         const oneYearFromNow = new Date();
         oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
+        console.log(leave_request)
+        console.log("test")
         if (leave_request.start_date > oneYearFromNow || leave_request.end_date > oneYearFromNow) {
-            throw new Error(`Cannot raise leave request more than one year in advance`);
+            console.log("hit")
+            throw new AppError(`Cannot raise leave request more than one year in advance`);
         }
 
+        console.log("test")
         if (leave_request.start_date < new Date() || leave_request.end_date < new Date()) {
-            throw new Error(AppError.exceptions.ERROR_PAST_DATE)
+            throw new AppError(AppError.exceptions.ERROR_PAST_DATE)
         }
 
         if (leave_request.start_date > leave_request.end_date) {
@@ -135,7 +139,7 @@ export class LeaveService {
         let leave_range = DateValidation.dayDifference(leave_request.end_date, leave_request.start_date);
 
         if (leave_range > user.leave_balance) {
-            throw new Error("Days requested exceed remaining balance")
+            throw new AppError("Days requested exceed remaining balance")
         }
 
         await this.repository.create(leave_request);
