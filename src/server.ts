@@ -44,9 +44,20 @@ export class Server {
   }
 
   private initialiseErrorHandling() {
-    this.app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
-      ErrorHandler.handle(err, res);
-    });
+    this.app.use(
+      (err: any, req: Request, res: Response, next: NextFunction) => {
+
+        if (res.headersSent) {
+          return next(err);
+        }
+
+        if (err instanceof AppError) {
+          return ErrorHandler.handle(err, res);
+        }
+
+        return ErrorHandler.handle(new AppError("Internal Server Error", 500), res);
+      }
+    );
   }
 
   private async initialiseDataSource() {

@@ -1,3 +1,4 @@
+import { AppError } from "./AppError";
 
 export class DateValidation {
     static dayDifference(start: Date, end: Date): number {
@@ -31,5 +32,15 @@ export class DateValidation {
                 : new Date(year, 2, 31);
 
         return { start, end };
+    }
+
+    static isDate(date: string): Date {
+        const parsedDate = new Date(date);
+
+        if (isNaN(parsedDate.getTime())) {
+            throw new AppError("Invalid date format", 400);
+        }
+
+        return parsedDate;
     }
 }

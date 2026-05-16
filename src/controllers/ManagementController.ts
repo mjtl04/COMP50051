@@ -6,6 +6,7 @@ import { IManagementService } from "../interfaces/services/IManagementService";
 import { IUserService } from "../interfaces/services/IUserService";
 import { ResponseHandler } from "../utilities/ResponseHandler";
 import { AppError } from "../utilities/AppError";
+import { DateValidation } from "../utilities/DateValidation";
 
 export class ManagementController {
 
@@ -19,14 +20,6 @@ export class ManagementController {
     if (!('end_date' in req.body)) { throw new AppError(AppError.exceptions.ERROR_END_DATE_REQUIRED) }
     if (!('manager_id' in req.body)) { throw new AppError(AppError.exceptions.ERROR_MANAGER_ID_REQUIRED) }
     if (!('employee_id' in req.body)) { throw new AppError(AppError.exceptions.ERROR_EMPLOYEE_ID_REQUIRED) }
-
-    if (!isDateString(req.body.start_date)) {
-      throw new AppError(AppError.exceptions.ERROR_START_DATE)
-    }
-
-    if (!isDateString(req.body.end_date)) {
-      throw new AppError(AppError.exceptions.ERROR_END_DATE)
-    }
 
     if (isNaN(req.body.employee_id)) {
       throw new AppError(AppError.exceptions.ERROR_EMPLOYEE_ID)
@@ -43,12 +36,13 @@ export class ManagementController {
 
     user_management.user_id = user_id;
     user_management.manager_id = manager_id;
-    user_management.start_date = new Date(req.body.start_date);
-    user_management.end_date = new Date(req.body.end_date);
+
+    user_management.start_date = DateValidation.isDate(req.body.start_date);
+    user_management.end_date = DateValidation.isDate(req.body.end_date);
 
     const errors = await validate(user_management);
     if (errors.length > 0) {
-      throw new Error(
+      throw new AppError(
         errors.map((err) => Object.values(err.constraints || {})).join(", "),
       );
     }

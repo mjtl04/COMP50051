@@ -5,6 +5,8 @@ import { ILeaveService } from "../interfaces/services/ILeaveService";
 import { ResponseHandler } from "../utilities/ResponseHandler";
 import { Validation } from "../utilities/Validation";
 import { AppError } from "../utilities/AppError";
+import { IsDateString } from "class-validator";
+import { DateValidation } from "../utilities/DateValidation";
 
 export class LeaveController {
 
@@ -41,8 +43,8 @@ export class LeaveController {
     if (!('start_date' in req.body)) { throw new AppError(AppError.exceptions.ERROR_START_DATE_REQUIRED) }
     if (!('end_date' in req.body)) { throw new AppError(AppError.exceptions.ERROR_END_DATE_REQUIRED) }
 
-    const start_date = new Date(req.body.start_date);
-    const end_date = new Date(req.body.end_date);
+    const start_date = DateValidation.isDate(req.body.start_date);
+    const end_date = DateValidation.isDate(req.body.end_date);
 
     let leave_dto = await this.leaveService.create(start_date, end_date, req.authedUser.employee_id);
     ResponseHandler.sendSuccessResponse(res, { message: LeaveController.SUCCESS_SUBMITTED, data: leave_dto }, StatusCodes.CREATED);

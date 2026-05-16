@@ -117,20 +117,16 @@ export class LeaveService {
         const oneYearFromNow = new Date();
         oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
-        console.log(leave_request)
-        console.log("test")
         if (leave_request.start_date > oneYearFromNow || leave_request.end_date > oneYearFromNow) {
-            console.log("hit")
             throw new AppError(`Cannot raise leave request more than one year in advance`);
         }
 
-        console.log("test")
         if (leave_request.start_date < new Date() || leave_request.end_date < new Date()) {
             throw new AppError(AppError.exceptions.ERROR_PAST_DATE)
         }
 
         if (leave_request.start_date > leave_request.end_date) {
-            throw new Error(`End date of ${leave_request.end_date} is before the start date of ${leave_request.start_date}`)
+            throw new AppError(`End date of ${leave_request.end_date} is before the start date of ${leave_request.start_date}`)
         }
 
         await this.getOverlap(leave_request);

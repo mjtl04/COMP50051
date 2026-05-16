@@ -5,6 +5,7 @@ import { LeaveRequest } from "../LeaveRequest";
 export class LeaveRequestDTO {
     id!: number;
     employee_id!: number;
+    raised_date!: string;
     start_date!: string;
     end_date!: string;
     status!: string;
@@ -14,6 +15,7 @@ export class LeaveRequestDTO {
         const dto = new LeaveRequestDTO();
         dto.id = entity.id;
         dto.employee_id = entity.user_id;
+        dto.raised_date = DateValidation.format(entity.raised_date);
         dto.start_date = DateValidation.format(entity.start_date);
         dto.end_date = DateValidation.format(entity.end_date);
         dto.status = StatusEnum[entity.status_id];

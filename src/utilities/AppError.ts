@@ -25,8 +25,6 @@ export class AppError extends Error {
         ERROR_LEAVE_BALANCE_REQUIRED: "leave_balance field is required",
 
         ERROR_EMPLOYEE_ID: "Invalid Employee ID",
-        ERROR_START_DATE: "Invalid start_date format",
-        ERROR_END_DATE: "Invalid end_date format",
         ERROR_MANAGER_ID: "Invalid manager_id format",
         ERROR_PAST_DATE: "Cannot assign date in the past",
         ERROR_DATE_ORDER: (start: Date, end: Date) => `End date: ${end} is before the start date: ${start}`,

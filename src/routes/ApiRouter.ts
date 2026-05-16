@@ -21,7 +21,7 @@ export class ApiRouter implements IApiRouter {
 
   private readonly jwtRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 20,
+    max: 100,
     message: ApiRouter.ERROR_TOO_MANY_REQUESTS,
     standardHeaders: true,
     legacyHeaders: false,
