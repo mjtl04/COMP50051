@@ -11,8 +11,9 @@ import { ILeaveRepository } from "../interfaces/repositories/ILeaveRepository";
 import { IManagementService } from "../interfaces/services/IManagementService";
 import { StatusEnum } from "../utilities/enums/StatusEnum";
 import { AppError } from "../utilities/AppError";
+import { ILeaveService } from "../interfaces/services/ILeaveService";
 
-export class LeaveService {
+export class LeaveService implements ILeaveService {
 
     constructor(
         private userService: IUserService,
@@ -138,9 +139,9 @@ export class LeaveService {
             throw new AppError("Days requested exceed remaining balance")
         }
 
-        await this.repository.create(leave_request);
+        const leave = await this.repository.create(leave_request);
 
-        return LeaveRequestDTO.init(leave_request)
+        return LeaveRequestDTO.init(leave)
 
     }
 

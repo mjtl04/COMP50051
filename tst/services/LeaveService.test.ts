@@ -7,6 +7,7 @@ import { LeaveBalanceDTO } from "../../src/entities/DTO/LeaveBalanceDTO";
 import { DateValidation } from "../../src/utilities/DateValidation";
 import { AuthedDTOToken } from "../../src/entities/DTO/AuthedDTOToken";
 import { AppError } from "../../src/utilities/AppError";
+import { TypeEnum } from "../../src/utilities/enums/TypeEnum";
 
 describe("LeaveService tests", () => {
     let service: LeaveService;
@@ -71,7 +72,7 @@ describe("LeaveService tests", () => {
         leave.id = 1;
         leave.start_date = new Date("2024-01-10");
         leave.end_date = new Date("2024-01-12");
-
+        leave.raised_date = new Date();
 
         userService.getById.mockResolvedValue({ id: 5 });
         repository.getAllByUserId.mockResolvedValue([leave]);
@@ -153,19 +154,29 @@ describe("LeaveService tests", () => {
         ).rejects.toThrow("Days requested exceed remaining balance");
     });
 
+
     it("create succeeds", async () => {
         repository.getOverlap.mockResolvedValue(null);
         userService.getById.mockResolvedValue({ leave_balance: 10 });
-        repository.create.mockResolvedValue(undefined);
 
-        const result = await service.create(
-            start,
-            end,
-            1
-        );
+        repository.create.mockResolvedValue({
+            id: 1,
+            user_id: 1,
+            type_id: TypeEnum.AnnualLeave,
+            status_id: StatusEnum.Pending,
+            raised_date: new Date(),
+            start_date: start,
+            end_date: end,
+            comment: null,
+            reviewed_by: 1,
+            reviewed_date: new Date()
+        });
+
+        const result = await service.create(start, end, 1);
 
         expect(result).toBeInstanceOf(LeaveRequestDTO);
     });
+
 
     it("update throws when request not found", async () => {
         repository.getById.mockResolvedValue(null);
@@ -196,6 +207,7 @@ describe("LeaveService tests", () => {
             status_id: StatusEnum.Pending,
             start_date: new Date(),
             end_date: new Date(),
+            raised_date: new Date()
         });
 
         userService.getById.mockResolvedValue({ id: 10, leave_balance: 10 });
