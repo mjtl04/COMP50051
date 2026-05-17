@@ -59,14 +59,17 @@ export class ManagementController {
   }
 
   public create = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const management = await this.validateRequest(req);
+      const employee = await this.userService.getById(management.user_id);
+      const manager = await this.userService.getById(management.manager_id);
 
-    const management = await this.validateRequest(req);
-    const employee = await this.userService.getById(management.user_id);
-    const manager = await this.userService.getById(management.manager_id);
+      await this.managementService.getOneByEmployeeAndManager(management.user_id, management.manager_id)
+      await this.managementService.add(management);
 
-    await this.managementService.getOneByEmployeeAndManager(management.user_id, management.manager_id)
-    await this.managementService.add(management);
-
-    ResponseHandler.sendSuccessResponse(res, { message: ManagementController.SUCCESS_CREATED, data: management }, StatusCodes.CREATED,);
+      ResponseHandler.sendSuccessResponse(res, { message: ManagementController.SUCCESS_CREATED, data: management }, StatusCodes.CREATED,);
+    } catch (error: any) {
+      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
+    }
   };
 }

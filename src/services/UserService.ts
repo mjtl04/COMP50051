@@ -11,6 +11,7 @@ import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IRoleService } from "../interfaces/services/IRoleService";
 import { Validation } from "../utilities/Validation";
 import { AppError } from "../utilities/AppError";
+import { NewUserDTO } from "../entities/DTO/NewUserDTO";
 
 export class UserService implements IUserService {
 
@@ -68,7 +69,7 @@ export class UserService implements IUserService {
         user.department = { id: dto.department_id } as Department;
         user.role = { id: dto.role_id } as Role;
 
-        if (dto.leave_balance < 0) {
+        if (user.leave_balance < 0) {
             throw new AppError(UserService.ERROR_MIN_LEAVE_BALANCE, StatusCodes.NO_CONTENT);
         }
         user.leave_balance = dto.leave_balance;
@@ -77,18 +78,22 @@ export class UserService implements IUserService {
         return UserDTO.init(updated!);
     }
 
-    public async create(token: AuthedDTOToken, body: User): Promise<UserDTO> {
-        const user = plainToInstance(User, body);
+    public async create(token: AuthedDTOToken, new_user: NewUserDTO): Promise<UserDTO> {
 
-        user.first_name = Validation.formatName(user.first_name);
-        user.last_name = Validation.formatName(user.last_name);
-        user.email = Validation.email(user.email);
+        let user = new User();
+        user.first_name = Validation.formatName(new_user.first_name);
+        user.last_name = Validation.formatName(new_user.last_name);
+        user.email = Validation.email(new_user.email);
+        user.password = new_user.password;
+
+        if (await this.emailExists(user.email)) {
+            throw new AppError(UserService.ERROR_EMAIL_EXISTS(new_user.email), StatusCodes.CONFLICT,);
+        }
+
+        user.department = await this.departmentService.getById(new_user.department_id);
+        user.role = await this.roleService.getById(new_user.role_id);
 
         await Validation.classValidate(user);
-        await this.emailExists(user.email);
-        await this.departmentService.getById(user.department_id);
-        await this.roleService.getById(user.role_id);
-
         await this.repository.create(user);
 
         return UserDTO.init(user);
@@ -98,10 +103,13 @@ export class UserService implements IUserService {
         await this.repository.delete(id);
     }
 
-    private async emailExists(email: string): Promise<void> {
-        const record = await this.repository.getByEmail(email);
-        if (record) {
-            throw new AppError(UserService.ERROR_EMAIL_EXISTS(email), StatusCodes.CONFLICT,);
+    private async emailExists(email: string): Promise<boolean> {
+        const user = await this.repository.getByEmail(email);
+        if (user) {
+            return true;
+        }
+        else {
+            return false;
         }
     };
 

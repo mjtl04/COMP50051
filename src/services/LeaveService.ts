@@ -195,8 +195,9 @@ export class LeaveService implements ILeaveService {
             }
 
             const days = DateValidation.dayDifference(leave_request.start_date, leave_request.end_date);
-            employee.leave_balance -= days;
+            employee.leave_balance = employee.leave_balance - days;
             await this.userService.update(employee);
+
         }
 
         leave_request.status_id = status;
