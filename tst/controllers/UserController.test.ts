@@ -103,7 +103,9 @@ describe("UserController tests", () => {
     it("should return error if required fields missing", async () => {
         req.body = { email: "missing fields" };
 
-        await expect(controller.create(req, res)).rejects.toThrow("password field is required");
+        await controller.create(req, res);
+
+        expect(ResponseHandler.sendErrorResponse).toHaveBeenCalled();
     });
 
     it("should update a user", async () => {

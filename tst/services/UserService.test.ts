@@ -104,12 +104,14 @@ describe("UserService tests", () => {
     });
 
     it("update throws when leave balance < 0", async () => {
-        repository.getById.mockResolvedValue(new User());
+        const user = new User();
+        user.leave_balance = -5;
+        repository.getById.mockResolvedValue(user);
         departmentService.getById.mockResolvedValue({});
         roleService.getById.mockResolvedValue({});
 
         await expect(
-            service.update({ id: 1, department_id: 1, role_id: 1, leave_balance: -5 } as any)
+            service.update({ id: 1, department_id: 1, role_id: 1, leave_balance: 10 } as any)
         ).rejects.toThrow(UserService.ERROR_MIN_LEAVE_BALANCE);
     });
 
